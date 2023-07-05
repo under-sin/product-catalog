@@ -4,6 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
+using ProductCatalog.Repositories;
+using ProductCatalog.Repositories.Interfaces;
+using ProductCatalog.Settings;
 
 namespace ProductCatalog
 {
@@ -18,7 +25,24 @@ namespace ProductCatalog
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+
+            // Configuration for mongodb undestanted guid type
+            BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
+            var mongoDbSettings = Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
+
+            // dependecy injection
+            services.AddSingleton<IMongoClient>(ServiceProvider =>
+            {
+                return new MongoClient(mongoDbSettings.ConnectionString);
+            });
+            
+            services.AddSingleton<ICategoryRepository, MongoDbCategoryRepository>();
+            
+            services.AddControllers(options =>
+            {
+                options.SuppressAsyncSuffixInActionNames = false;
+            });
+            
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProductCatalog", Version = "v1" });
