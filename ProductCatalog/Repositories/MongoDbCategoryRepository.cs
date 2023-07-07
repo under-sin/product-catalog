@@ -14,6 +14,8 @@ namespace ProductCatalog.Repositories
         private readonly string databaseName = "productCatalog";
         private readonly string collectionName = "catagories";
         private readonly IMongoCollection<Category> categoriesCollection;
+        
+        // FilterDefinitionBuilder is a generic class to create the filters mongodb needs
         private readonly FilterDefinitionBuilder<Category> filterBuilder = Builders<Category>.Filter;
 
         public MongoDbCategoryRepository(IMongoClient mongoClient)
